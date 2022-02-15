@@ -11972,6 +11972,7 @@ void Client::Handle_OP_RaidCommand(const EQApplicationPacket *app)
 
 void Client::Handle_OP_RandomReq(const EQApplicationPacket *app)
 {
+	Mob* raceya = entity_list.GetMobByNpcTypeID(113569);
 	if (app->size != sizeof(RandomReq_Struct)) {
 		LogError("Wrong size: OP_RandomReq, size=[{}], expected [{}]", app->size, sizeof(RandomReq_Struct));
 		return;
@@ -11987,12 +11988,18 @@ void Client::Handle_OP_RandomReq(const EQApplicationPacket *app)
 		randHigh = 100;
 	}
 	randResult = zone->random.Int(randLow, randHigh);
-
 	auto outapp = new EQApplicationPacket(OP_RandomReply, sizeof(RandomReply_Struct));
 	RandomReply_Struct* rr = (RandomReply_Struct*)outapp->pBuffer;
 	rr->low = randLow;
 	rr->high = randHigh;
 	rr->result = randResult;
+
+	
+	if (randResult >= 900 && zone->GetZoneID() == 113)
+	{
+		raceya->CastToNPC()->SignalNPC(0);
+	}
+
 	strcpy(rr->name, GetName());
 	entity_list.QueueCloseClients(this, outapp, false, 400);
 	safe_delete(outapp);
